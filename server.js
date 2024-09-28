@@ -1,37 +1,42 @@
-const express = require('express');  // Import Express
-const cors = require('cors');        // Import CORS
-const axios = require('axios');      // Import Axios
+const express = require('express'); // Import Express
+const cors = require('cors');       // Import CORS
+const axios = require('axios');     // Import Axios
+require('dotenv').config();          // Load environment variables
 
-const app = express();               // Inisialisasi aplikasi Express
-const port = 5000;                   // Port untuk server
+const app = express();               // Initialize Express app
+const port = process.env.PORT || 5000; // Use environment port or default to 5000
 
-// Middleware untuk mengizinkan permintaan dari http://localhost:3000
+// Middleware to allow requests from http://localhost:3000
 app.use(cors({ origin: 'http://localhost:3000' }));
-app.use(express.json());             // Middleware untuk parsing JSON
+app.use(express.json());             // Middleware for JSON parsing
 
-// Route untuk GET request di root
+// Route for GET request at root
 app.get('/', (req, res) => {
-    res.send('Server berjalan dengan baik'); // Respon untuk GET /
+    res.send('Server berjalan dengan baik'); // Response for GET /
 });
 
-// Endpoint untuk API chat
+// Endpoint for chat API
 app.post('/api/chat', async (req, res) => {
-    const { message, apikey } = req.body; // Mengambil data dari request body
+    const { message, apikey } = req.body; // Get data from request body
+
+    if (!message || !apikey) {
+        return res.status(400).send('Message and API key are required.');
+    }
 
     try {
-        // Mengirim permintaan ke API eksternal
+        // Send request to external API
         const response = await axios.post('https://api.botcahx.eu.org/api/search/openai-custom', {
             message: message,
             apikey: apikey,
         });
-        res.json(response.data); // Mengembalikan data dari API eksternal
+        res.json(response.data); // Return data from external API
     } catch (error) {
-        console.error('Error:', error); // Log error untuk debug
-        res.status(500).send('Error: ' + error.message); // Mengembalikan status error
+        console.error('Error:', error); // Log error for debugging
+        res.status(500).send('Error: ' + error.message); // Return error status
     }
 });
 
-// Menjalankan server
+// Start the server
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });
