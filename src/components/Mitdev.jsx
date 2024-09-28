@@ -37,7 +37,7 @@ const Chatbot = () => {
     ];
 
     try {
-      const response = await axios.post('https:///mitdevai.vercel.app/api/chat', {
+      const response = await axios.post('https:///mitapi.vercel.app/api/chat', {
         message: messagesToSend,
         apikey: 'mutiadevcahx',
     });
