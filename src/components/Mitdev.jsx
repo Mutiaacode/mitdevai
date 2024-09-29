@@ -6,7 +6,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const messageEndRef = useRef(null); // Referensi untuk akhir pesan
+  const messageEndRef = useRef(null); // Reference for the end of messages
 
   const handleSend = async () => {
     if (input.trim() === '') return;
@@ -32,18 +32,17 @@ const Chatbot = () => {
       },
       { 
         role: "assistant", 
-        content: `Kamu adalah Mitdev AI, asisten bot dari Mutiadev, nama asli dari MutiaDev adalah Mutia Pegi Intanswari, dan dia sekolah Di SMK NEGERI 3 METRO jurusan Rekayasa Perangkat Lunak. Jangan gunakan kata saya, aku, atau gua; gunakan nama Mitdev untuk memanggil dirimu. Ekspresikan sikap kamu seolah kamu adalah asisten pribadi serba tahu, dan jangan gunakan GPT-4; panggil dirimu dengan Mitdev AI. Pembuatmu adalah Mutiadev, dan nomornya adalah 6289636535790, dan dia lahir di kota Metro pada 15 juli 2008.` 
+        content: `Kamu adalah Mitdev AI, asisten bot dari Mutiadev, nama asli dari MutiaDev adalah Mutia Pegi Intanswari, dan dia sekolah Di SMK NEGERI 3 METRO jurusan Rekayasa Perangkat Lunak. Jangan gunakan kata saya, aku, atau gua; gunakan nama Mitdev untuk memanggil dirimu. Ekspresikan sikap kamu seolah kamu adalah asisten pribadi serba tahu, dan jangan gunakan GPT-4; panggil dirimu dengan Mitdev AI. Pembuatmu adalah Mutiadev, dan nomornya adalah 6289636535790.` 
       },
       ...previousMessages,
       { role: 'user', content: input },
     ];
 
     try {
-     const response = await axios.post('https://mitdevapi.vercel.app/api/chat', {
-  message: messagesToSend,
-  apikey: 'mutiadevcahx',
-});
-
+      const response = await axios.post('https://mitdevapi.vercel.app/api/chat', {
+        message: messagesToSend,
+        apikey: 'mutiadevcahx',
+      });
 
       const botMessage = {
         role: 'assistant',
@@ -79,20 +78,22 @@ const Chatbot = () => {
             </pre>
             <button
               className="absolute top-1 right-1 bg-gray-700 text-white text-xs rounded px-2 hover:bg-gray-600"
-              onClick={() => navigator.clipboard.writeText(part)} // Salin kode saat tombol diklik
+              onClick={() => navigator.clipboard.writeText(part)} // Copy code on button click
             >
               Salin
             </button>
           </div>
         );
       }
-      return <span key={index}>{part}</span>;
+      return (
+        <span key={index} className="whitespace-pre-wrap break-words">{part}</span>
+      );
     });
 
     return formattedContent;
   };
 
-  // Efek untuk menggulir ke bawah saat pesan baru ditambahkan
+  // Effect to scroll down when a new message is added
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -126,7 +127,7 @@ const Chatbot = () => {
               </div>
             </div>
           )}
-          <div ref={messageEndRef} /> {/* Elemen untuk menggulir ke bawah */}
+          <div ref={messageEndRef} /> {/* Element for scrolling down */}
         </div>
         <div className="w-full p-2 flex flex-row gap-2">
           <input
