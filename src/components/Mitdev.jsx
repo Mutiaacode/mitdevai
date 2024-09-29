@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { FaInstagram } from 'react-icons/fa';
+import { FaCheck } from 'react-icons/fa'; // Import checkmark icon
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
@@ -67,26 +68,33 @@ const Chatbot = () => {
     }
   };
 
-  const formatMessageContent = (content) => {
+  // State to track copied status for each code block
+  const [copiedIndex, setCopiedIndex] = useState(null);
+
+  const formatMessageContent = (content, index) => {
     const codeRegex = /```([\s\S]*?)```/g;
-    const formattedContent = content.split(codeRegex).map((part, index) => {
-      if (index % 2 === 1) {
+    const formattedContent = content.split(codeRegex).map((part, partIndex) => {
+      if (partIndex % 2 === 1) {
         return (
-          <div key={index} className="relative mb-2">
+          <div key={partIndex} className="relative mb-2">
             <pre className="bg-gray-900 p-2 rounded-md overflow-x-auto text-xs cursor-pointer">
               <code className="text-green-500">{part}</code>
             </pre>
             <button
               className="absolute top-1 right-1 bg-gray-700 text-white text-xs rounded px-2 hover:bg-gray-600"
-              onClick={() => navigator.clipboard.writeText(part)} // Copy code on button click
+              onClick={() => {
+                navigator.clipboard.writeText(part); // Copy code on button click
+                setCopiedIndex(index); // Set copied index
+                setTimeout(() => setCopiedIndex(null), 2000); // Reset after 2 seconds
+              }}
             >
-              Salin
+              {copiedIndex === index ? <FaCheck /> : 'Salin'}
             </button>
           </div>
         );
       }
       return (
-        <span key={index} className="whitespace-pre-wrap break-words">{part}</span>
+        <span key={partIndex} className="whitespace-pre-wrap break-words">{part}</span>
       );
     });
 
@@ -116,7 +124,7 @@ const Chatbot = () => {
                   msg.role === 'user' ? 'bg-gray-800 text-white' : 'bg-gray-700 text-gray-300'
                 }`}
               >
-                {formatMessageContent(msg.content)}
+                {formatMessageContent(msg.content, index)}
               </div>
             </div>
           ))}
