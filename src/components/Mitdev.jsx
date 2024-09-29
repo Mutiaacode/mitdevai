@@ -37,10 +37,11 @@ const Chatbot = () => {
     ];
 
     try {
-    const response = await axios.post('/api/chat', {
+  const response = await axios.post('https://api.botcahx.eu.org/api/search/openai-custom', {
     message: messagesToSend,
     apikey: 'mutiadevcahx',
-});
+  });
+
 
 
       const botMessage = {
