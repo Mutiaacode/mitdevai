@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://api.botcahx.eu.org/api/$1"
+    }
+  ]
+}
