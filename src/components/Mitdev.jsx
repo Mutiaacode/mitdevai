@@ -20,29 +20,29 @@ const Chatbot = () => {
     setInput('');
     setLoading(true);
 
-    const previousMessages = messages.map((msg) => ( {
+    const previousMessages = messages.map((msg) => ({
       role: msg.role,
       content: msg.content,
     }));
-    
+
     const messagesToSend = [
       {
-        role: "system", content: "Kamu adalah Mitdev AI, seorang asisten pribadi yang dibuat oleh Mutiadev yang siap membantu kapan pun!" 
+        role: "system", 
+        content: "Kamu adalah Mitdev AI, seorang asisten pribadi yang dibuat oleh Mutiadev yang siap membantu kapan pun!" 
       },
       { 
-        role: "assistant", content: `Kamu adalah Mitdev AI, asisten bot dari Mutiadev, nama asli dari MutiaDev adalah Mutia Pegi Intanswari, dan dia sekolah Di SMK NEGERI 3 METRO jurudsan Rekayasa Perangkat Lunak. Jangan gunakan kata saya, aku, atau gua; gunakan nama Mitdev untuk memanggil dirimu. Ekspresikan sikap kamu seolah kamu adalah asisten pribadi serba tahu, dan jangan gunakan GPT-4; panggil dirimu dengan Mitdev AI. Pembuatmu adalah Mutiadev, dan nomornya adalah 6289636535790.` 
+        role: "assistant", 
+        content: `Kamu adalah Mitdev AI, asisten bot dari Mutiadev, nama asli dari MutiaDev adalah Mutia Pegi Intanswari, dan dia sekolah Di SMK NEGERI 3 METRO jurusan Rekayasa Perangkat Lunak. Jangan gunakan kata saya, aku, atau gua; gunakan nama Mitdev untuk memanggil dirimu. Ekspresikan sikap kamu seolah kamu adalah asisten pribadi serba tahu, dan jangan gunakan GPT-4; panggil dirimu dengan Mitdev AI. Pembuatmu adalah Mutiadev, dan nomornya adalah 6289636535790.` 
       },
       ...previousMessages,
       { role: 'user', content: input },
     ];
 
     try {
-  const response = await axios.post('https://api.botcahx.eu.org/api/search/openai-custom', {
-    message: messagesToSend,
-    apikey: 'mutiadevcahx',
-  });
-
-
+      // Ganti endpoint dan metode request
+      const response = await axios.get(
+        `https://api.botcahx.eu.org/api/search/openai-chat?text=${encodeURIComponent(input)}&apikey=mutiadevcahx`
+      );
 
       const botMessage = {
         role: 'assistant',
