@@ -39,10 +39,11 @@ const Chatbot = () => {
     ];
 
     try {
-      // Ganti endpoint dan metode request
-      const response = await axios.get(
-        `https://api.botcahx.eu.org/api/search/openai-chat?text=${encodeURIComponent(input)}&apikey=mutiadevcahx`
-      );
+     const response = await axios.post('https://mitdevapi.vercel.app/api/chat', {
+  message: messagesToSend,
+  apikey: 'mutiadevcahx',
+});
+
 
       const botMessage = {
         role: 'assistant',
