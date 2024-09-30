@@ -1,30 +1,40 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaInstagram, FaCheck } from 'react-icons/fa';
+import { FaInstagram, FaCheck, FaGoogle, FaThumbsUp, FaCopy } from 'react-icons/fa';
+import { auth, signInWithGoogle, logout } from '../firebase';
+import { onAuthStateChanged } from "firebase/auth";
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [fadeOut, setFadeOut] = useState(false); // New state for fade out
-  const [showChatbot, setShowChatbot] = useState(false); // New state for chatbot visibility
-  const [fadeIn, setFadeIn] = useState(false); // New state for fade in
+  const [user, setUser] = useState(null);
+  const [likedMessages, setLikedMessages] = useState([]);
+  const [copiedIndex, setCopiedIndex] = useState(null);
   const messageEndRef = useRef(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setFadeOut(true); // Start fade out
-      const fadeOutTimer = setTimeout(() => {
-        setShowWelcome(false); // Hide welcome message
-        setShowChatbot(true); // Show chatbot UI
-        setFadeIn(true); // Start fade in animation
-      }, 1000); // Match this duration with your fade out animation time
-      return () => clearTimeout(fadeOutTimer);
-    }, 3000); // 3 seconds to show the welcome message
-
-    return () => clearTimeout(timer);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
   }, []);
+
+  const handleLogin = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error('Login Error:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout Error:', error);
+    }
+  };
 
   const handleSend = async () => {
     if (input.trim() === '') return;
@@ -85,28 +95,22 @@ const Chatbot = () => {
     }
   };
 
-  const [copiedIndex, setCopiedIndex] = useState(null);
+  const handleLike = (index) => {
+    if (!likedMessages.includes(index)) {
+      setLikedMessages([...likedMessages, index]);
+    } else {
+      setLikedMessages(likedMessages.filter((likedIndex) => likedIndex !== index));
+    }
+  };
 
-  const formatMessageContent = (content, index) => {
+  const formatMessageContent = (content) => {
     const codeRegex = /```([\s\S]*?)```/g;
     const formattedContent = content.split(codeRegex).map((part, partIndex) => {
       if (partIndex % 2 === 1) {
         return (
-          <div key={partIndex} className="relative mb-2">
-            <pre className="bg-gray-900 p-2 rounded-md overflow-x-auto text-xs cursor-pointer">
-              <code className="text-green-500">{part}</code>
-            </pre>
-            <button
-              className="absolute top-1 right-1 bg-gray-700 text-white text-xs rounded px-2 hover:bg-gray-600"
-              onClick={() => {
-                navigator.clipboard.writeText(part);
-                setCopiedIndex(index);
-                setTimeout(() => setCopiedIndex(null), 2000);
-              }}
-            >
-              {copiedIndex === index ? <FaCheck /> : 'Salin'}
-            </button>
-          </div>
+          <pre key={partIndex} className="bg-gray-900 p-2 rounded-md overflow-x-auto text-xs cursor-pointer">
+            <code className="text-green-500">{part}</code>
+          </pre>
         );
       }
       return (
@@ -123,69 +127,95 @@ const Chatbot = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
-      {showWelcome ? (
-        <div className={`text-2xl font-bold ${fadeOut ? 'fade-out' : 'fade-in'} text-center font-poppins`}>
-          Mitdev AI 
+      <header className="w-full px-4 py-3 bg-black border-b border-gray-800 flex justify-between items-center">
+        <div className="text-lg font-bold md:text-xl font-poppins">Mitdev AI</div>
+        <div className="flex items-center space-x-4 font-poppins">
+          {user ? (
+            <>
+              <span>{user.displayName}</span>
+              <button className="px-3 py-1 bg-red-600 rounded hover:bg-red-700 font-poppins" onClick={handleLogout}>Logout</button>
+            </>
+          ) : (
+            <button className="flex items-center space-x-2 px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 font-poppins" onClick={handleLogin}>
+              <FaGoogle />
+              <span>Login with Google</span>
+            </button>
+          )}
         </div>
-        
-      ) : (
-        <>
-          <header className="w-full px-4 py-3 bg-black border-b border-gray-800 flex justify-between items-center">
-            <div className="text-lg font-bold md:text-xl font-poppins">Mitdev AI</div>
-            <div className="text-sm md:text-base font-poppins">Status: Active</div>
-          </header>
-          <main className={`flex flex-col items-center justify-center flex-grow w-full px-4 md:px-10 lg:px-32 ${fadeIn ? 'fade-in' : 'hidden'}`}>
-            <div className="flex flex-col w-full flex-grow bg-black p-4 overflow-y-auto max-h-[70vh]">
-              {messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`flex mb-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`p-3 rounded-lg max-w-xs sm:max-w-sm md:max-w-xl ${
-                      msg.role === 'user' ? 'bg-gray-800 text-white' : 'bg-gray-700 text-gray-300'
-                    }`}
-                  >
-                    {formatMessageContent(msg.content, index)}
-                  </div>
+      </header>
+      <main className="font-poppins flex flex-col items-center justify-center flex-grow w-full px-4 md:px-10 lg:px-32">
+        {user ? (
+          <div className="font-poppins flex flex-col w-full flex-grow bg-black p-4 overflow-y-auto max-h-[70vh]">
+            {messages.map((msg, index) => (
+              <div key={index} className={`font-poppins flex mb-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`font-poppins p-3 rounded-xl max-w-xs sm:max-w-sm md:max-w-xl ${msg.role === 'user' ? 'bg-gray-800 text-white font-poppins' : ' text-gray-300 font-poppins'}`}>
+                  {formatMessageContent(msg.content)}
+                  {msg.role === 'assistant' && (
+                    <div className="font-poppins flex justify-start mt-2 space-x-4">
+                      <button
+                        className="text-xs text-gray-400 hover:text-blue-400"
+                        onClick={() => {
+                          navigator.clipboard.writeText(msg.content);
+                          setCopiedIndex(index);
+                          setTimeout(() => setCopiedIndex(null), 2000);
+                        }}
+                      >
+                        {copiedIndex === index ? <FaCheck /> : <FaCopy />}
+                      </button>
+                      <button
+                        className={`text-xs ${likedMessages.includes(index) ? 'text-green-500' : 'text-gray-400'} hover:text-green-500`}
+                        onClick={() => handleLike(index)}
+                      >
+                        <FaThumbsUp /> 
+                      </button>
+                      <button
+                        className="text-xs text-gray-400 hover:text-blue-500"
+                        onClick={() => window.open('https://www.google.com/search?q=' + encodeURIComponent(msg.content), '_blank')}
+                      >
+                        <FaGoogle /> 
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ))}
-              {loading && (
-                <div className="flex mb-4 justify-start">
-                  <div className="p-3 rounded-lg max-w-xs bg-gray-700 text-gray-300 animate-pulse">
-                    Mitdev AI sedang mengetik...
-                  </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="flex mb-4 justify-start">
+                <div className="font-semibold fonr-poppins p-3 rounded-lg max-w-xs  text-gray-500 animate-pulse">
+                  Mitdev AI sedang mengetik...
                 </div>
-              )}
-              <div ref={messageEndRef} />
-            </div>
-            <div className="w-full p-2 flex flex-row gap-2">
-              <input
-                type="text"
-                className="flex-1 p-3 bg-gray-800 text-white border border-gray-700 rounded-full focus:outline-none"
-                placeholder="Ketik pesan Anda..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-              />
-              <button
-                className="p-3 bg-gray-700 text-white rounded-full hover:bg-gray-600"
-                onClick={handleSend}
-              >
-                Send
-              </button>
-            </div>
-          </main>
-          <footer className="w-full px-6 py-4 bg-black border-t border-gray-800 flex justify-center items-center space-x-2">
-            <div className="text-center text-gray-500 text-xs md:text-sm">
-              Mitdev AI may make mistakes. Always verify important information.
-            </div>
-            <a href="https://instagram.com/mtiaavv" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-400">
-              <FaInstagram className="w-5 h-5" />
-            </a>
-          </footer>
-        </>
-      )}
+              </div>
+            )}
+            <div ref={messageEndRef} />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="text-2xl font-bold animate-pulse text-gray-500">Mitdev AI</div>
+            <div className="text-gray-400 mt-2">Silakan Login Untuk Memulai Percakapan....</div>
+          </div>
+        )}
+        {user && (
+          <div className="w-full p-2 flex flex-row gap-4">
+            <input
+              type="text"
+              className="flex-1 p-3 bg-gray-800 text-white border border-gray-700 rounded-full focus:outline-none"
+              placeholder="Ketik pesan Anda..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+            />
+            <button className="p-3 bg-gray-700 text-white rounded-full hover:bg-gray-600" onClick={handleSend}>
+              Send
+            </button>
+          </div>
+        )}
+      </main>
+      <footer className="w-full px-6 py-4 bg-black border-t border-gray-800 flex justify-center items-center space-x-2">
+        <div className="text-center text-gray-500 text-xs md:text-sm">
+          Mitdev AI may make mistakes. Always verify important information.
+        </div>
+        <a href="https://instagram.com/mtiaavv" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-500"><FaInstagram /></a>
+      </footer>
     </div>
   );
 };
