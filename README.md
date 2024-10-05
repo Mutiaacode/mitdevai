@@ -1,4 +1,3 @@
-Tentu! Berikut README.md lengkap untuk project "Mitdev Ai":
 
 ```markdown
 # 🤖 Mitdev Ai
@@ -54,12 +53,6 @@ Mitdev Ai is an intelligent AI chatbot web application built with React. It prov
 - `src/` - Contains the main source code for the application.
 - `public/` - Public assets and static files.
 - `package.json` - Lists project dependencies and scripts.
-
-## 📸 Screenshots
-
-<div align="center">
-  <img src="https://placehold.co/600x400" alt="Mitdev Ai Screenshot" width="80%" />
-</div>
 
 ## 🤝 Contribution
 
